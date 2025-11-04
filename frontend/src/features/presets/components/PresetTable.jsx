@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react'
-import { Box, Button, Table, HStack, VStack, Text, Image, SelectRoot, SelectTrigger, SelectContent, SelectItem, SelectValueText, createListCollection } from '@chakra-ui/react'
+import { useState, useEffect, useMemo } from 'react'
+import { Box, Button, Table, HStack, VStack, Text, Image, SelectRoot, SelectTrigger, SelectContent, SelectItem, SelectValueText, createListCollection, Input } from '@chakra-ui/react'
 import { Field } from '@/components/ui/field'
+import { LuSearch } from 'react-icons/lu'
 import { API_BASE_URL } from '@constants/api'
 
 /**
@@ -40,10 +41,12 @@ const PresetTable = ({
   effectTypes = []
 }) => {
   const [selectedArchetype, setSelectedArchetype] = useState('all')
+  const [searchQuery, setSearchQuery] = useState('')
 
-  // Reset filter to 'all' when switching between different entity types (tabs)
+  // Reset filter and search when switching between different entity types (tabs)
   useEffect(() => {
     setSelectedArchetype('all')
+    setSearchQuery('')
   }, [entityType])
 
   const getArchetypeName = (archetypeId) => {
@@ -92,9 +95,23 @@ const PresetTable = ({
   const showArchetypeColumn = requiresArchetype && archetypes.length > 0
 
   // Filter data by selected archetype
-  const filteredData = selectedArchetype === 'all' 
+  const archetypeFilteredData = selectedArchetype === 'all' 
     ? data 
     : data.filter(item => item.archetype_id === parseInt(selectedArchetype))
+
+  // Filter data by search query
+  const filteredData = useMemo(() => {
+    if (!searchQuery.trim()) return archetypeFilteredData
+    
+    const query = searchQuery.toLowerCase()
+    return archetypeFilteredData.filter(item => {
+      // Search in name field
+      if (item.name && item.name.toLowerCase().includes(query)) return true
+      // Search in description field
+      if (item.description && item.description.toLowerCase().includes(query)) return true
+      return false
+    })
+  }, [archetypeFilteredData, searchQuery])
 
   return (
     <VStack align="stretch" gap={4}>
@@ -104,38 +121,60 @@ const PresetTable = ({
           Create New {entityType}
         </Button>
         
-        {/* Archetype Filter (only show if entity requires archetype) */}
-        {showArchetypeColumn && (
-          <Box width="250px">
-            <Field label="Filter by Archetype">
-              <SelectRoot
-                collection={createListCollection({
-                  items: [
-                    { value: 'all', label: 'All Archetypes' },
-                    ...archetypes.map(a => ({ value: a.id.toString(), label: a.name }))
-                  ]
-                })}
-                value={[selectedArchetype]}
-                onValueChange={(e) => setSelectedArchetype(e.value[0])}
-                size="sm"
-              >
-                <SelectTrigger>
-                  <SelectValueText placeholder="Select archetype" />
-                </SelectTrigger>
-                <SelectContent>
-                  {[
-                    { value: 'all', label: 'All Archetypes' },
-                    ...archetypes.map(a => ({ value: a.id.toString(), label: a.name }))
-                  ].map((option) => (
-                    <SelectItem key={option.value} item={option}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </SelectRoot>
-            </Field>
-          </Box>
-        )}
+        {/* Filters */}
+        <HStack gap={4}>
+          {/* Archetype Filter (only show if entity requires archetype) */}
+          {showArchetypeColumn && (
+            <Box width="250px">
+              <Field label="Filter by Archetype">
+                <SelectRoot
+                  collection={createListCollection({
+                    items: [
+                      { value: 'all', label: 'All Archetypes' },
+                      ...archetypes.map(a => ({ value: a.id.toString(), label: a.name }))
+                    ]
+                  })}
+                  value={[selectedArchetype]}
+                  onValueChange={(e) => setSelectedArchetype(e.value[0])}
+                  size="sm"
+                >
+                  <SelectTrigger>
+                    <SelectValueText placeholder="Select archetype" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[
+                      { value: 'all', label: 'All Archetypes' },
+                      ...archetypes.map(a => ({ value: a.id.toString(), label: a.name }))
+                    ].map((option) => (
+                      <SelectItem key={option.value} item={option}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </SelectRoot>
+              </Field>
+            </Box>
+          )}
+
+          {/* Search Bar (show for effects and other entities with name/description) */}
+          {(isEffect || fieldType === 'name' || fieldType === 'description') && (
+            <Box width="300px">
+              <Field label="Search">
+                <HStack>
+                  <Box color="gray.500">
+                    <LuSearch />
+                  </Box>
+                  <Input
+                    placeholder={`Search ${entityType.toLowerCase()}s...`}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    size="sm"
+                  />
+                </HStack>
+              </Field>
+            </Box>
+          )}
+        </HStack>
       </HStack>
 
       {/* Table */}
