@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
-import { Box, Heading, Text, VStack, Button, HStack, Table, Spinner, SelectRoot, SelectTrigger, SelectContent, SelectItem, SelectValueText, createListCollection } from '@chakra-ui/react'
+import { useEffect, useState, useMemo } from 'react'
+import { Box, Heading, Text, VStack, Button, HStack, Table, Spinner, SelectRoot, SelectTrigger, SelectContent, SelectItem, SelectValueText, createListCollection, Input } from '@chakra-ui/react'
 import { useNavigate } from 'react-router-dom'
 import { Field } from '@/components/ui/field'
+import { LuSearch } from 'react-icons/lu'
 import axios from 'axios'
 import { getApiUrl } from '@constants/api'
 
@@ -10,6 +11,7 @@ const Cards = () => {
   const [cards, setCards] = useState([])
   const [archetypes, setArchetypes] = useState([])
   const [selectedArchetype, setSelectedArchetype] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -73,6 +75,17 @@ const Cards = () => {
       value: archetype.id.toString()
     }))
   })
+
+  // Filter cards based on search query
+  const filteredCards = useMemo(() => {
+    if (!searchQuery.trim()) return cards
+    
+    const query = searchQuery.toLowerCase()
+    return cards.filter(card => 
+      card.name.toLowerCase().includes(query) ||
+      card.description?.toLowerCase().includes(query)
+    )
+  }, [cards, searchQuery])
   
   return (
     <Box p={8}>
@@ -88,25 +101,40 @@ const Cards = () => {
           Browse and manage cards by archetype
         </Text>
 
-        {/* Archetype Filter */}
-        <Field label="Filter by Archetype" width="300px">
-          <SelectRoot
-            collection={archetypeCollection}
-            value={[selectedArchetype]}
-            onValueChange={(e) => setSelectedArchetype(e.value[0])}
-          >
-            <SelectTrigger>
-              <SelectValueText placeholder="Select an archetype" />
-            </SelectTrigger>
-            <SelectContent>
-              {archetypes.map((archetype) => (
-                <SelectItem key={archetype.id} item={archetype.id.toString()}>
-                  {archetype.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </SelectRoot>
-        </Field>
+        {/* Filters */}
+        <HStack width="100%" gap={4}>
+          <Field label="Filter by Archetype" flex="1" maxW="300px">
+            <SelectRoot
+              collection={archetypeCollection}
+              value={[selectedArchetype]}
+              onValueChange={(e) => setSelectedArchetype(e.value[0])}
+            >
+              <SelectTrigger>
+                <SelectValueText placeholder="Select an archetype" />
+              </SelectTrigger>
+              <SelectContent>
+                {archetypes.map((archetype) => (
+                  <SelectItem key={archetype.id} item={archetype.id.toString()}>
+                    {archetype.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </SelectRoot>
+          </Field>
+
+          <Field label="Search Cards" flex="1" maxW="400px">
+            <HStack>
+              <Box color="gray.500">
+                <LuSearch />
+              </Box>
+              <Input
+                placeholder="Search by name or description..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </HStack>
+          </Field>
+        </HStack>
 
         {loading ? (
           <Box width="100%" textAlign="center" py={8}>
@@ -116,7 +144,7 @@ const Cards = () => {
           <Box width="100%" textAlign="center" py={8}>
             <Text color="red.500">{error}</Text>
           </Box>
-        ) : cards.length === 0 ? (
+        ) : filteredCards.length === 0 ? (
           <Box 
             p={8} 
             borderWidth={1} 
@@ -127,11 +155,15 @@ const Cards = () => {
             textAlign="center"
           >
             <Text color="gray.500" mb={4}>
-              No cards found. Create your first card!
+              {cards.length === 0 
+                ? 'No cards found in this archetype. Create your first card!'
+                : 'No cards match your search query.'}
             </Text>
-            <Button colorPalette="blue" onClick={() => navigate('/cards/create')}>
-              Create Card
-            </Button>
+            {cards.length === 0 && (
+              <Button colorPalette="blue" onClick={() => navigate('/cards/create')}>
+                Create Card
+              </Button>
+            )}
           </Box>
         ) : (
           <Table.Root size="sm" variant="outline" width="100%">
@@ -147,7 +179,7 @@ const Cards = () => {
               </Table.Row>
             </Table.Header>
             <Table.Body>
-              {cards.map((card) => (
+              {filteredCards.map((card) => (
                 <Table.Row key={card.id}>
                   <Table.Cell>{card.id}</Table.Cell>
                   <Table.Cell fontWeight="medium">{card.name}</Table.Cell>
