@@ -16,8 +16,9 @@ import { usePresetEntity } from '../hooks/usePresetEntity'
  * @param {string} fieldType - Type of form field: 'name', 'description', or 'complex'
  * @param {boolean} requiresArchetype - Whether this entity must be bound to an archetype
  * @param {boolean} isEffect - Whether this is an Effect entity (enables special handling)
+ * @param {boolean} isType - Whether this is a Type entity (enables icon upload)
  */
-const PresetTab = ({ entityType, endpoint, fieldType, requiresArchetype = false, isEffect = false }) => {
+const PresetTab = ({ entityType, endpoint, fieldType, requiresArchetype = false, isEffect = false, isType = false }) => {
   // Use the preset entity hook to manage state and CRUD operations
   const {
     data,
@@ -55,6 +56,7 @@ const PresetTab = ({ entityType, endpoint, fieldType, requiresArchetype = false,
         isEffect={isEffect}
         archetypes={archetypes}
         requiresArchetype={requiresArchetype}
+        isType={isType}
       />
 
       <PresetModal
@@ -70,6 +72,7 @@ const PresetTab = ({ entityType, endpoint, fieldType, requiresArchetype = false,
         effectTypes={effectTypes}
         requiresArchetype={requiresArchetype}
         isEffect={isEffect}
+        isType={isType}
       />
 
       <DeleteConfirmDialog

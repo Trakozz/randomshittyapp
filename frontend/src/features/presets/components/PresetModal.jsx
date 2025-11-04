@@ -1,3 +1,4 @@
+import React from 'react'
 import {
   Box,
   Button,
@@ -8,6 +9,8 @@ import {
 } from '@chakra-ui/react'
 import { Dialog } from '@chakra-ui/react'
 import { NativeSelectRoot, NativeSelectField } from '@chakra-ui/react'
+import { TypeIconUpload } from './TypeIconUpload'
+import { getApiUrl } from '@constants/api'
 
 /**
  * PresetModal Component
@@ -46,7 +49,10 @@ const PresetModal = ({
   effectTypes = [],
   requiresArchetype = false,
   isEffect = false,
+  isType = false,
 }) => {
+  // Store the selected icon file (not uploaded yet)
+  const [selectedIconFile, setSelectedIconFile] = React.useState(null)
 
   const getFieldLabel = () => {
     switch (fieldType) {
@@ -63,6 +69,51 @@ const PresetModal = ({
 
   const handleChange = (field, value) => {
     setFormData({ ...formData, [field]: value })
+  }
+
+  const handleIconFileSelect = (file) => {
+    setSelectedIconFile(file)
+  }
+
+  const uploadIconIfNeeded = async () => {
+    if (isType && selectedIconFile) {
+      const formDataObj = new FormData()
+      formDataObj.append('file', selectedIconFile)
+
+      const response = await fetch(getApiUrl('types/upload-icon'), {
+        method: 'POST',
+        body: formDataObj,
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.detail || 'Upload failed')
+      }
+
+      const result = await response.json()
+      return result.path
+    }
+    return null
+  }
+
+  const handleSave = async () => {
+    try {
+      // Upload icon if needed and get the path
+      const iconPath = await uploadIconIfNeeded()
+      
+      if (iconPath) {
+        // Update formData with icon path
+        setFormData({ ...formData, icon_path: iconPath })
+        setSelectedIconFile(null)
+      }
+      
+      // Call onSave which will use the updated formData
+      // Note: We need to ensure the hook's handleSave uses the latest formData
+      await onSave(iconPath)
+    } catch (err) {
+      console.error('Error during save:', err)
+      alert(`Failed to save: ${err.message}`)
+    }
   }
 
   const renderSimpleField = () => {
@@ -85,6 +136,26 @@ const PresetModal = ({
           />
         )}
       </Box>
+    )
+  }
+
+  const renderTypeForm = () => {
+    return (
+      <Stack gap={4}>
+        <Box>
+          <Text fontWeight="medium" mb={2}>Name *</Text>
+          <Input
+            value={formData.name || ''}
+            onChange={(e) => handleChange('name', e.target.value)}
+            placeholder="Enter type name"
+            required
+          />
+        </Box>
+        <TypeIconUpload
+          currentIconPath={formData.icon_path}
+          onFileSelect={handleIconFileSelect}
+        />
+      </Stack>
     )
   }
 
@@ -182,13 +253,19 @@ const PresetModal = ({
             <Dialog.Title>{isEditing ? 'Edit' : 'Create'} {entityType}</Dialog.Title>
           </Dialog.Header>
           <Dialog.Body>
-            {isEffect ? renderEffectForm() : requiresArchetype ? renderArchetypeForm() : renderSimpleField()}
+            {isEffect 
+              ? renderEffectForm() 
+              : isType 
+                ? renderTypeForm() 
+                : requiresArchetype 
+                  ? renderArchetypeForm() 
+                  : renderSimpleField()}
           </Dialog.Body>
           <Dialog.Footer>
             <Dialog.ActionTrigger asChild>
               <Button variant="outline">Cancel</Button>
             </Dialog.ActionTrigger>
-            <Button colorPalette="blue" onClick={onSave}>
+            <Button colorPalette="blue" onClick={handleSave}>
               Save
             </Button>
           </Dialog.Footer>

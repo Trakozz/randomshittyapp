@@ -11,6 +11,7 @@ export const ENDPOINTS = {
   // Presets
   ARCHETYPES: '/archetypes',
   TYPES: '/types',
+  TYPES_UPLOAD_ICON: '/types/upload-icon',
   EFFECT_TYPES: '/effect_types',
   FACTIONS: '/factions',
   EFFECTS: '/effects',

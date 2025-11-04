@@ -32,7 +32,7 @@ const PresetsPage = () => {
       case 'archetypes':
         return <PresetTab entityType="Archetype" endpoint="archetypes" fieldType="name" />
       case 'types':
-        return <PresetTab entityType="Type" endpoint="types" fieldType="name" />
+        return <PresetTab entityType="Type" endpoint="types" fieldType="name" isType={true} />
       case 'effect_types':
         return <PresetTab entityType="EffectType" endpoint="effect_types" fieldType="name" />
       case 'factions':

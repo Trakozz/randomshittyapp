@@ -109,15 +109,19 @@ export const usePresetEntity = (entityType, endpoint, fieldType, requiresArchety
   /**
    * Saves the entity (create or update) via API
    * Refreshes the data list on success
+   * @param {string|null} iconPath - Optional icon path for Type entities
    */
-  const handleSave = async () => {
+  const handleSave = async (iconPath = null) => {
     try {
+      // If icon path is provided, merge it with formData
+      const dataToSave = iconPath ? { ...formData, icon_path: iconPath } : formData
+      
       if (editingId) {
         // Update existing entity
-        await axios.put(`${getApiUrl(endpoint)}/${editingId}`, formData)
+        await axios.put(`${getApiUrl(endpoint)}/${editingId}`, dataToSave)
       } else {
         // Create new entity
-        await axios.post(getApiUrl(endpoint), formData)
+        await axios.post(getApiUrl(endpoint), dataToSave)
       }
       setModalOpen(false)
       setFormData({})

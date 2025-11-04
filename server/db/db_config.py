@@ -3,7 +3,7 @@ from sqlalchemy.orm import sessionmaker
 from server.db.base import Base
 
 # PostgreSQL connection string
-DATABASE_URL = "postgresql+psycopg://user:password@localhost/postgres"
+DATABASE_URL = "postgresql+psycopg://user:password@localhost/ascendance_db"
 
 # Create the engine
 engine = create_engine(

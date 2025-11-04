@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
-import { Box, Button, Table, HStack, VStack, Text, SelectRoot, SelectTrigger, SelectContent, SelectItem, SelectValueText, createListCollection } from '@chakra-ui/react'
+import { Box, Button, Table, HStack, VStack, Text, Image, SelectRoot, SelectTrigger, SelectContent, SelectItem, SelectValueText, createListCollection } from '@chakra-ui/react'
 import { Field } from '@/components/ui/field'
+import { API_BASE_URL } from '@constants/api'
 
 /**
  * PresetTable Component
@@ -33,7 +34,8 @@ const PresetTable = ({
   onCreate, 
   isEffect = false,
   archetypes = [],
-  requiresArchetype = false
+  requiresArchetype = false,
+  isType = false
 }) => {
   const [selectedArchetype, setSelectedArchetype] = useState('all')
 
@@ -133,6 +135,7 @@ const PresetTable = ({
         <Table.Header>
           <Table.Row>
             <Table.ColumnHeader>ID</Table.ColumnHeader>
+            {isType && <Table.ColumnHeader>Icon</Table.ColumnHeader>}
             <Table.ColumnHeader>{getFieldLabel()}</Table.ColumnHeader>
             {showArchetypeColumn && (
               <Table.ColumnHeader>Archetype</Table.ColumnHeader>
@@ -156,6 +159,20 @@ const PresetTable = ({
             filteredData.map((item) => (
               <Table.Row key={item.id}>
                 <Table.Cell>{item.id}</Table.Cell>
+                {isType && (
+                  <Table.Cell>
+                    {item.icon_path ? (
+                      <Image
+                        src={`${API_BASE_URL}/types/icon/${item.icon_path.split('/').pop()}`}
+                        alt={`${item.name} icon`}
+                        boxSize="32px"
+                        objectFit="contain"
+                      />
+                    ) : (
+                      <Text fontSize="xs" color="gray.500">No icon</Text>
+                    )}
+                  </Table.Cell>
+                )}
                 <Table.Cell>{getFieldValue(item)}</Table.Cell>
                 {showArchetypeColumn && (
                   <Table.Cell>{getArchetypeName(item.archetype_id)}</Table.Cell>
