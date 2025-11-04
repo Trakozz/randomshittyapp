@@ -1,0 +1,99 @@
+# ===== Python =====
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Python version file
+.python-version
+
+# ===== UV Package Manager =====
+uv.lock
+
+# ===== Node.js / Frontend =====
+node_modules/
+package-lock.json
+npm-debug.log*
+yarn-error.log*
+
+# ===== IDE / Editors =====
+# VSCode
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# PyCharm / IntelliJ
+.idea/
+*.iml
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# ===== Database =====
+*.db
+*.sqlite
+*.sqlite3
+
+# ===== Application Specific =====
+# Uploaded files (user content - should not be in git)
+uploads/*
+!uploads/.gitkeep
+!uploads/illustrations/.gitkeep
+
+# Migration scripts (temporary utility scripts)
+migrate-to-feature-structure.sh
+
+# ===== Environment Variables =====
+.env
+.env.local
+.env.*.local
+
+# ===== Logs =====
+*.log
+logs/
+
+# ===== OS =====
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+.directory
