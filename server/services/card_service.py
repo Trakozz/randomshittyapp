@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 from server.repositories.card_repository import CardRepository
 
 
@@ -17,9 +17,11 @@ class CardService:
         resilience: int,
         max_occurrence: int,
         illustration_id: Optional[int] = None,
-        description: Optional[str] = None
+        description: Optional[str] = None,
+        effect_ids: List[int] = None,
+        bonus_ids: List[int] = None
     ):
-        """Create a new card with validation."""
+        """Create a new card with validation and associate effects/bonuses."""
         # Basic validation
         if cost < 0:
             raise ValueError("Cost cannot be negative")
@@ -30,7 +32,8 @@ class CardService:
         if max_occurrence < 1:
             raise ValueError("Max occurrence must be at least 1")
         
-        return self.repo.create(
+        # Create card
+        card = self.repo.create(
             name=name,
             archetype_id=archetype_id,
             type_id=type_id,
@@ -42,14 +45,27 @@ class CardService:
             illustration_id=illustration_id,
             description=description
         )
+        
+        # Associate effects if provided
+        if effect_ids:
+            for effect_id in effect_ids:
+                self.repo.add_effect(card.id, effect_id)
+        
+        # Associate bonuses if provided
+        if bonus_ids:
+            for bonus_id in bonus_ids:
+                self.repo.add_bonus(card.id, bonus_id)
+        
+        # Reload the card with relationships
+        return self.repo.get(card.id, load_relationships=True)
 
     def get_card(self, card_id: int, load_relationships: bool = False):
         """Get a card by ID, optionally loading effects and bonuses."""
         return self.repo.get(card_id, load_relationships=load_relationships)
 
-    def list_cards(self, load_relationships: bool = False):
-        """List all cards, optionally loading effects and bonuses."""
-        return self.repo.list(load_relationships=load_relationships)
+    def list_cards(self, archetype_id: Optional[int] = None, load_relationships: bool = False):
+        """List cards, optionally filtered by archetype and loading effects and bonuses."""
+        return self.repo.list(archetype_id=archetype_id, load_relationships=load_relationships)
     
     def update_card(
         self,

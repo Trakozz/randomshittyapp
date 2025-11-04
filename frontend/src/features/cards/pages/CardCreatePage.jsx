@@ -139,17 +139,19 @@ const CardCreatePage = () => {
       // Transform form data to match API expectations
       const cardData = {
         name: data.name,
-        archetype_id: Number(data.archetype_id) || null,
-        type_id: Number(data.type_id) || null,
-        faction_id: Number(data.faction_id) || null,
+        archetype_id: Number(data.archetype_id),
+        type_id: Number(data.type_id),
+        faction_id: Number(data.faction_id),
         cost: Number(data.cost),
         combat_power: Number(data.combat_power),
         resilience: Number(data.resilience),
-        effect_ids: data.effect_ids || [],
-        bonus_ids: data.bonus_ids || [],
-        illustration_id: Number(data.illustration_id) || null,
+        illustration_id: data.illustration_id ? Number(data.illustration_id) : undefined,
+        description: data.description || undefined,
         max_occurrence: Number(data.max_occurrence),
       }
+      
+      // Note: effect_ids and bonus_ids are not yet supported in the backend
+      // TODO: Add separate API calls to link effects and bonuses after card creation
 
       const createdCard = await createCard(cardData)
 

@@ -22,6 +22,8 @@ class CardCreate(BaseModel):
     max_occurrence: int = Field(..., ge=1)
     illustration_id: Optional[int] = Field(None, gt=0)
     description: Optional[str] = None
+    effect_ids: List[int] = Field(default_factory=list)
+    bonus_ids: List[int] = Field(default_factory=list)
 
 
 class CardUpdate(BaseModel):
@@ -35,6 +37,8 @@ class CardUpdate(BaseModel):
     max_occurrence: Optional[int] = Field(None, ge=1)
     illustration_id: Optional[int] = Field(None, gt=0)
     description: Optional[str] = None
+    effect_ids: Optional[List[int]] = None
+    bonus_ids: Optional[List[int]] = None
 
 
 class EffectResponse(BaseModel):
@@ -83,7 +87,7 @@ class BonusAssociation(BaseModel):
 # Card CRUD endpoints
 @router.post("/cards", response_model=CardResponse, status_code=201)
 def create_card(card: CardCreate):
-    """Create a new card with all attributes."""
+    """Create a new card with all attributes and associate effects/bonuses."""
     try:
         return service.create_card(
             name=card.name,
@@ -95,7 +99,9 @@ def create_card(card: CardCreate):
             resilience=card.resilience,
             max_occurrence=card.max_occurrence,
             illustration_id=card.illustration_id,
-            description=card.description
+            description=card.description,
+            effect_ids=card.effect_ids,
+            bonus_ids=card.bonus_ids
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -115,10 +121,11 @@ def get_card(
 
 @router.get("/cards", response_model=List[CardResponse])
 def list_cards(
+    archetype_id: Optional[int] = Query(None, description="Filter cards by archetype ID"),
     load_relationships: bool = Query(False, description="Load effects and bonuses for all cards")
 ):
-    """Get all cards, optionally with effects and bonuses."""
-    return service.list_cards(load_relationships=load_relationships)
+    """Get cards, optionally filtered by archetype and with effects and bonuses."""
+    return service.list_cards(archetype_id=archetype_id, load_relationships=load_relationships)
 
 
 @router.put("/cards/{card_id}", response_model=CardResponse)

@@ -24,6 +24,7 @@ import { API_BASE_URL } from '@constants/api'
  * @param {boolean} isEffect - Whether displaying Effect entities (adds description column)
  * @param {Array} archetypes - Array of archetype objects for filtering
  * @param {boolean} requiresArchetype - Whether this entity type requires archetype binding
+ * @param {Array} effectTypes - Array of effect type objects for displaying effect type names
  */
 const PresetTable = ({ 
   data, 
@@ -35,7 +36,8 @@ const PresetTable = ({
   isEffect = false,
   archetypes = [],
   requiresArchetype = false,
-  isType = false
+  isType = false,
+  effectTypes = []
 }) => {
   const [selectedArchetype, setSelectedArchetype] = useState('all')
 
@@ -47,6 +49,12 @@ const PresetTable = ({
   const getArchetypeName = (archetypeId) => {
     const archetype = archetypes.find(a => a.id === archetypeId)
     return archetype ? archetype.name : 'N/A'
+  }
+
+  const getEffectTypeName = (effectTypeId) => {
+    if (!effectTypeId) return 'N/A'
+    const effectType = effectTypes.find(et => et.id === effectTypeId)
+    return effectType ? effectType.name : 'N/A'
   }
 
   const getFieldValue = (item) => {
@@ -141,7 +149,10 @@ const PresetTable = ({
               <Table.ColumnHeader>Archetype</Table.ColumnHeader>
             )}
             {isEffect && (
-              <Table.ColumnHeader>Description</Table.ColumnHeader>
+              <>
+                <Table.ColumnHeader>Description</Table.ColumnHeader>
+                <Table.ColumnHeader>Effect Type</Table.ColumnHeader>
+              </>
             )}
             <Table.ColumnHeader width="150px">Actions</Table.ColumnHeader>
           </Table.Row>
@@ -149,7 +160,7 @@ const PresetTable = ({
         <Table.Body>
           {filteredData.length === 0 ? (
             <Table.Row>
-              <Table.Cell colSpan={showArchetypeColumn ? (isEffect ? 5 : 4) : (isEffect ? 4 : 3)}>
+              <Table.Cell colSpan={showArchetypeColumn ? (isEffect ? 6 : 4) : (isEffect ? 5 : 3)}>
                 <Text textAlign="center" color="gray.500" py={4}>
                   No {entityType.toLowerCase()}s found
                 </Text>
@@ -178,7 +189,10 @@ const PresetTable = ({
                   <Table.Cell>{getArchetypeName(item.archetype_id)}</Table.Cell>
                 )}
                 {isEffect && (
-                  <Table.Cell>{item.description || 'N/A'}</Table.Cell>
+                  <>
+                    <Table.Cell>{item.description || 'N/A'}</Table.Cell>
+                    <Table.Cell>{getEffectTypeName(item.effect_type_id)}</Table.Cell>
+                  </>
                 )}
                 <Table.Cell>
                   <HStack gap={2}>

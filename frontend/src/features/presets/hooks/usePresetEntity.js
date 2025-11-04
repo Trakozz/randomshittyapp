@@ -68,7 +68,7 @@ export const usePresetEntity = (entityType, endpoint, fieldType, requiresArchety
    */
   const fetchEffectTypes = async () => {
     try {
-      const response = await axios.get(getApiUrl('effectTypes'))
+      const response = await axios.get(getApiUrl('effect_types'))
       setEffectTypes(response.data)
     } catch (error) {
       console.error('Error fetching effect types:', error)

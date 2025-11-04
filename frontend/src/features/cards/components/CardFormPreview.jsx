@@ -6,6 +6,7 @@ import {
     Stack,
 } from '@chakra-ui/react'
 import { useColorModeValue } from '@/components/ui/color-mode'
+import { API_BASE_URL } from '@constants/api'
 
 /**
  * CardFormPreview Component
@@ -55,21 +56,16 @@ export const CardFormPreview = ({ formData }) => {
     const borderColor = getThemeColor()
     const defaultBorder = borderColor
 
-    // Get type icon
-    const getTypeIcon = () => {
-        if (type?.name) {
-            const icons = {
-                'Warrior': '⚔️',
-                'Mage': '🔮',
-                'Rogue': '🗡️',
-                'Priest': '✨',
-                'Ranger': '🏹',
-                'Paladin': '🛡️',
-            }
-            return icons[type.name] || '⚔️'
+    // Get type icon URL from the type's icon_path
+    const getTypeIconUrl = () => {
+        if (type?.icon_path) {
+            const filename = type.icon_path.split('/').pop()
+            return `${API_BASE_URL}/types/icon/${filename}`
         }
-        return '⚔️'
+        return null
     }
+
+    const typeIconUrl = getTypeIconUrl()
 
     return (
         <Box position="sticky" top={4}>
@@ -116,10 +112,20 @@ export const CardFormPreview = ({ formData }) => {
                                 bg="whiteAlpha.200"
                                 borderRadius="full"
                                 boxSize="32px"
-                                fontSize="xl"
                                 shadow="0 0 8px rgba(0,0,0,0.4)"
+                                overflow="hidden"
+                                padding="4px"
                             >
-                                {getTypeIcon?.()}
+                                {typeIconUrl ? (
+                                    <Image
+                                        src={typeIconUrl}
+                                        alt={type?.name || 'Type icon'}
+                                        boxSize="full"
+                                        objectFit="contain"
+                                    />
+                                ) : (
+                                    <Text fontSize="xl">⚔️</Text>
+                                )}
                             </Flex>
 
                             {/* Optional secondary icon (e.g. time/day icon) */}

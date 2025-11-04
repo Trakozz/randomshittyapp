@@ -40,6 +40,14 @@ class CardRepository:
             session.add(card)
             session.commit()
             session.refresh(card)
+            
+            # Eagerly load relationships to avoid DetachedInstanceError
+            # Access the relationships while still in session to trigger loading
+            _ = card.effects
+            _ = card.bonuses
+            
+            # Detach from session so it can be used outside
+            session.expunge(card)
             return card
 
     def get(self, card_id: int, load_relationships: bool = False) -> Optional[Card]:
@@ -55,22 +63,41 @@ class CardRepository:
                     # Make a copy to detach from session
                     session.expunge(result)
                 return result
-            return session.get(Card, card_id)
+            
+            # Get card without eager loading
+            card = session.get(Card, card_id)
+            if card:
+                # Eagerly load relationships to avoid DetachedInstanceError
+                _ = card.effects
+                _ = card.bonuses
+                session.expunge(card)
+            return card
 
-    def list(self, load_relationships: bool = False) -> List[Card]:
-        """Return all cards in the database, optionally loading effects and bonuses."""
+    def list(self, archetype_id: Optional[int] = None, load_relationships: bool = False) -> List[Card]:
+        """Return cards in the database, optionally filtered by archetype and loading effects and bonuses."""
         with SessionLocal() as session:
+            # Build base query
+            stmt = select(Card)
+            
+            # Add archetype filter if provided
+            if archetype_id is not None:
+                stmt = stmt.where(Card.archetype_id == archetype_id)
+            
+            # Add relationship loading if requested
             if load_relationships:
-                stmt = select(Card).options(
+                stmt = stmt.options(
                     selectinload(Card.effects),
                     selectinload(Card.bonuses)
                 )
-                result = session.execute(stmt).scalars().all()
-                # Detach from session
-                for card in result:
-                    session.expunge(card)
-                return result
-            result = session.scalars(select(Card)).all()
+            
+            result = session.execute(stmt).scalars().all()
+            
+            # Eagerly load relationships to avoid DetachedInstanceError
+            for card in result:
+                _ = card.effects
+                _ = card.bonuses
+                session.expunge(card)
+            
             return result
 
     def update(
@@ -116,6 +143,13 @@ class CardRepository:
             
             session.commit()
             session.refresh(card)
+            
+            # Eagerly load relationships to avoid DetachedInstanceError
+            _ = card.effects
+            _ = card.bonuses
+            
+            # Detach from session so it can be used outside
+            session.expunge(card)
             return card
 
     def delete(self, card_id: int) -> bool:

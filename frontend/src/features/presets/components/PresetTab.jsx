@@ -57,6 +57,7 @@ const PresetTab = ({ entityType, endpoint, fieldType, requiresArchetype = false,
         archetypes={archetypes}
         requiresArchetype={requiresArchetype}
         isType={isType}
+        effectTypes={effectTypes}
       />
 
       <PresetModal
