@@ -1,5 +1,6 @@
 import { Heading, Flex, HStack, Container, Separator } from '@chakra-ui/react'
 import { NavLink } from 'react-router-dom'
+import { ColorModeButton } from '../../components/ui/color-mode'
 
 const Header = () => {
   return (
@@ -18,7 +19,7 @@ const Header = () => {
       <Container maxW="container.2xl" py={4}>
         <Flex align="center" justify="space-between">
           {/* Logo/Brand */}
-          <Heading as="h1" size="lg" fontWeight="bold" color="fg">
+          <Heading as="h1" size="lg" fontWeight="bold">
             AscendanceV2
           </Heading>
 
@@ -89,6 +90,7 @@ const Header = () => {
             <Separator orientation="vertical" height="6" mx={2} />
 
             {/* Color Mode Toggle */}
+            <ColorModeButton />
           </HStack>
         </Flex>
       </Container>

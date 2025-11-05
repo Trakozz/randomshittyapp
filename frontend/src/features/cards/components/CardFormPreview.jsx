@@ -16,8 +16,9 @@ import { API_BASE_URL } from '@constants/api'
  * Updates live as the user fills out the form.
  * 
  * @param {Object} formData - The form data from React Hook Form watch()
+ * @param {boolean} showWrapper - Whether to show the sticky wrapper and "Live Preview" heading (default: true)
  */
-export const CardFormPreview = ({ formData }) => {
+export const CardFormPreview = ({ formData, showWrapper = true }) => {
     const {
         name = 'Card Name',
         archetype,
@@ -67,25 +68,21 @@ export const CardFormPreview = ({ formData }) => {
 
     const typeIconUrl = getTypeIconUrl()
 
-    return (
-        <Box position="sticky" top={4}>
-            <Text fontSize="lg" fontWeight="semibold" mb={4}>
-                Live Preview
-            </Text>
-
-            <Box
-                w="360px"
-                color={textColor}
-                borderRadius="lg"
-                borderWidth="4px"
-                borderColor={defaultBorder}
-                overflow="hidden"
-                boxShadow="2xl"
-                bg={backgroundColor}
-                transition="transform 0.2s ease"
-                _hover={{ transform: "scale(1.02)" }}
-                position="relative"
-            >
+    // Inner card component
+    const cardElement = (
+        <Box
+            w="360px"
+            color={textColor}
+            borderRadius="lg"
+            borderWidth="4px"
+            borderColor={defaultBorder}
+            overflow="hidden"
+            boxShadow="2xl"
+            bg={backgroundColor}
+            transition="transform 0.2s ease"
+            _hover={{ transform: "scale(1.02)" }}
+            position="relative"
+        >
                 {/* ===== Top Bar ===== */}
                 <Box
                     position="absolute"
@@ -350,6 +347,20 @@ export const CardFormPreview = ({ formData }) => {
                     <Text>{faction?.name || "—"}</Text>
                 </Flex>
             </Box>
+        
+    )
+
+    // Return with or without wrapper based on showWrapper prop
+    if (!showWrapper) {
+        return cardElement
+    }
+
+    return (
+        <Box position="sticky" top={4}>
+            <Text fontSize="lg" fontWeight="semibold" mb={4}>
+                Live Preview
+            </Text>
+            {cardElement}
         </Box>
     )
 }

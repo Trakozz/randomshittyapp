@@ -238,7 +238,7 @@ const PresetTable = ({
                     <Button
                       size="sm"
                       colorPalette="blue"
-                      variant="ghost"
+                      variant="outline"
                       onClick={() => onEdit(item)}
                     >
                       Edit
@@ -246,7 +246,7 @@ const PresetTable = ({
                     <Button
                       size="sm"
                       colorPalette="red"
-                      variant="ghost"
+                      variant="outline"
                       onClick={() => onDelete(item)}
                     >
                       Delete

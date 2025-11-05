@@ -192,7 +192,7 @@ const Cards = () => {
                       <Button
                         size="sm"
                         colorPalette="blue"
-                        variant="ghost"
+                        variant="outline"
                         onClick={() => navigate(`/cards/edit/${card.id}`)}
                       >
                         Edit
@@ -200,7 +200,7 @@ const Cards = () => {
                       <Button
                         size="sm"
                         colorPalette="red"
-                        variant="ghost"
+                        variant="outline"
                         onClick={() => handleDelete(card.id)}
                       >
                         Delete

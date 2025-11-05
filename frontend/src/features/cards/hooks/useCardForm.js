@@ -53,6 +53,17 @@ export const useCardForm = () => {
     }
   }
 
+  // Fetch a single card by ID
+  const fetchCard = async (cardId) => {
+    try {
+      const response = await axios.get(`${getApiUrl('cards')}/${cardId}`)
+      return response.data
+    } catch (err) {
+      console.error('Error fetching card:', err)
+      throw err
+    }
+  }
+
   // Create a new card
   const createCard = async (cardData) => {
     try {
@@ -60,6 +71,17 @@ export const useCardForm = () => {
       return response.data
     } catch (err) {
       console.error('Error creating card:', err)
+      throw err
+    }
+  }
+
+  // Update an existing card
+  const updateCard = async (cardId, cardData) => {
+    try {
+      const response = await axios.put(`${getApiUrl('cards')}/${cardId}`, cardData)
+      return response.data
+    } catch (err) {
+      console.error('Error updating card:', err)
       throw err
     }
   }
@@ -74,6 +96,8 @@ export const useCardForm = () => {
     loading,
     error,
     createCard,
+    updateCard,
+    fetchCard,
     refetchPresets: fetchPresetData,
   }
 }

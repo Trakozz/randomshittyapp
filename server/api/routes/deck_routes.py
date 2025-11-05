@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Query
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, computed_field
 from typing import Optional, List
 from server.repositories.deck_repository import DeckRepository
 from server.services.deck_service import DeckService
@@ -11,6 +11,47 @@ service = DeckService(deck_repo)
 
 
 # Pydantic models for request/response validation
+class TypeInCard(BaseModel):
+    id: int
+    name: str
+    icon_path: Optional[str] = None
+    
+    class Config:
+        from_attributes = True
+
+
+class ArchetypeInCard(BaseModel):
+    id: int
+    name: str
+    
+    class Config:
+        from_attributes = True
+
+
+class FactionInCard(BaseModel):
+    id: int
+    name: str
+    
+    class Config:
+        from_attributes = True
+
+
+class IllustrationInCard(BaseModel):
+    id: int
+    filename: str
+    original_name: Optional[str] = None
+    archetype_id: int
+    
+    @computed_field
+    @property
+    def url(self) -> str:
+        """Computed URL path for the illustration"""
+        return f"/uploads/illustrations/archetype_{self.archetype_id}/{self.filename}"
+    
+    class Config:
+        from_attributes = True
+
+
 class DeckCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
     description: Optional[str] = None
@@ -28,6 +69,7 @@ class DeckResponse(BaseModel):
     name: str
     description: Optional[str]
     archetype_id: int
+    archetype: Optional[ArchetypeInCard] = None
 
     class Config:
         from_attributes = True
@@ -45,6 +87,10 @@ class CardInDeckResponse(BaseModel):
     illustration_id: Optional[int]
     max_occurrence: int
     description: Optional[str]
+    type: Optional[TypeInCard] = None
+    archetype: Optional[ArchetypeInCard] = None
+    faction: Optional[FactionInCard] = None
+    illustration: Optional[IllustrationInCard] = None
 
     class Config:
         from_attributes = True
@@ -53,6 +99,7 @@ class CardInDeckResponse(BaseModel):
 class DeckCardResponse(BaseModel):
     card: CardInDeckResponse
     quantity: int
+    count: int  # Alias for quantity
 
 
 class AddCardToDeck(BaseModel):

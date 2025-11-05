@@ -1,6 +1,6 @@
 from typing import List, Optional, Dict
 from sqlalchemy import select
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import selectinload, joinedload
 from server.db.schema.deck import Deck
 from server.db.schema.card import Card
 from server.db.schema.deck_card import DeckCard
@@ -21,26 +21,31 @@ class DeckRepository:
     def get(self, deck_id: int, load_cards: bool = False) -> Optional[Deck]:
         """Retrieve a deck by its ID, optionally loading cards."""
         with SessionLocal() as session:
+            stmt = select(Deck).where(Deck.id == deck_id).options(
+                joinedload(Deck.archetype)
+            )
             if load_cards:
-                stmt = select(Deck).where(Deck.id == deck_id).options(
-                    selectinload(Deck.cards)
-                )
-                result = session.execute(stmt).scalar_one_or_none()
-                if result:
-                    session.expunge(result)
-                return result
-            return session.get(Deck, deck_id)
+                stmt = stmt.options(selectinload(Deck.cards))
+            
+            result = session.execute(stmt).unique().scalar_one_or_none()
+            if result:
+                # Access archetype to load it
+                _ = result.archetype
+                session.expunge(result)
+            return result
          
     def list(self, load_cards: bool = False) -> List[Deck]:
         """Return all decks in the database, optionally loading cards."""
         with SessionLocal() as session:
+            stmt = select(Deck).options(joinedload(Deck.archetype))
             if load_cards:
-                stmt = select(Deck).options(selectinload(Deck.cards))
-                result = session.execute(stmt).scalars().all()
-                for deck in result:
-                    session.expunge(deck)
-                return result
-            result = session.scalars(select(Deck)).all()
+                stmt = stmt.options(selectinload(Deck.cards))
+            
+            result = session.execute(stmt).unique().scalars().all()
+            for deck in result:
+                # Access archetype to load it
+                _ = deck.archetype
+                session.expunge(deck)
             return result
         
     def get_by_name(self, name: str) -> Optional[Deck]:
@@ -130,10 +135,18 @@ class DeckRepository:
             if not deck:
                 return []
             
-            # Query DeckCard associations with Card data
+            # Query DeckCard associations with Card data, eagerly loading relationships
             stmt = (
                 select(DeckCard, Card)
                 .join(Card, DeckCard.card_id == Card.id)
+                .options(
+                    selectinload(Card.type),
+                    selectinload(Card.archetype),
+                    selectinload(Card.faction),
+                    selectinload(Card.illustration),
+                    selectinload(Card.effects),
+                    selectinload(Card.bonuses)
+                )
                 .where(DeckCard.deck_id == deck_id)
             )
             results = session.execute(stmt).all()
@@ -141,10 +154,18 @@ class DeckRepository:
             # Build response with card data and quantity
             cards_data = []
             for deck_card, card in results:
+                # Access relationships before expunge to load them
+                _ = card.type
+                _ = card.archetype
+                _ = card.faction
+                _ = card.illustration
+                _ = card.effects
+                _ = card.bonuses
                 session.expunge(card)
                 cards_data.append({
                     "card": card,
-                    "quantity": deck_card.quantity
+                    "quantity": deck_card.quantity,
+                    "count": deck_card.quantity  # Add count alias for frontend
                 })
             
             return cards_data

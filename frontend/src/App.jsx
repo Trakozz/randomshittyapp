@@ -1,5 +1,5 @@
 import './App.css'
-import { Box } from '@chakra-ui/react'
+import { Box, Container } from '@chakra-ui/react'
 import { Outlet } from 'react-router-dom'
 import { Toaster } from '@/components/ui/toaster'
 import { Header } from '@components'
@@ -9,9 +9,9 @@ function App() {
     <Box minH="100vh">
       <Header />
       {/* Add margin-top to account for fixed header */}
-      <Box mt="70px">
+      <Container maxW="container.2xl" mt="70px" px={4}>
         <Outlet />
-      </Box>
+      </Container>
       <Toaster />
     </Box>
   )

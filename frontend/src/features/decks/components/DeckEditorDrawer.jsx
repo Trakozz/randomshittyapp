@@ -14,6 +14,7 @@ import {
   Spinner,
 } from '@chakra-ui/react'
 import { FiTrash2, FiPlus, FiMinus } from 'react-icons/fi'
+import { AddCardDialog } from './AddCardDialog'
 
 export const DeckEditorDrawer = ({
   open,
@@ -31,6 +32,7 @@ export const DeckEditorDrawer = ({
   const [validation, setValidation] = useState(null)
   const [loading, setLoading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [addCardDialogOpen, setAddCardDialogOpen] = useState(false)
 
   useEffect(() => {
     if (deck) {
@@ -87,6 +89,16 @@ export const DeckEditorDrawer = ({
       await loadDeckData() // Refresh
     } catch (error) {
       console.error('Failed to remove card:', error)
+    }
+  }
+
+  const handleAddCard = async (cardId, quantity) => {
+    try {
+      await onAddCard(deck.id, cardId, quantity)
+      await loadDeckData() // Refresh
+    } catch (error) {
+      console.error('Failed to add card:', error)
+      throw error // Re-throw to show error in dialog
     }
   }
 
@@ -175,7 +187,12 @@ export const DeckEditorDrawer = ({
                   <Text fontSize="lg" fontWeight="semibold">
                     Cards in Deck
                   </Text>
-                  <Button size="sm" colorPalette="green" variant="outline">
+                  <Button
+                    size="sm"
+                    colorPalette="green"
+                    variant="outline"
+                    onClick={() => setAddCardDialogOpen(true)}
+                  >
                     <FiPlus /> Add Card
                   </Button>
                 </HStack>
@@ -261,6 +278,13 @@ export const DeckEditorDrawer = ({
           <Drawer.CloseTrigger />
         </Drawer.Content>
       </Drawer.Positioner>
+      
+      <AddCardDialog
+        open={addCardDialogOpen}
+        onClose={() => setAddCardDialogOpen(false)}
+        onAddCard={handleAddCard}
+        deckArchetypeId={deck?.archetype_id}
+      />
     </Drawer.Root>
   )
 }

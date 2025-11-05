@@ -1,6 +1,8 @@
 import { Card, Badge, HStack, VStack, Text, Button } from '@chakra-ui/react'
+import { useNavigate } from 'react-router-dom'
 
 export const DeckCard = ({ deck, onEdit, onDelete, totalCards, validation }) => {
+  const navigate = useNavigate()
   const isValid = validation?.valid
   
   return (
@@ -32,11 +34,21 @@ export const DeckCard = ({ deck, onEdit, onDelete, totalCards, validation }) => 
           <HStack gap={2} mt={2}>
             <Button
               size="sm"
+              colorPalette="teal"
+              variant="outline"
+              onClick={() => navigate(`/decks/${deck.id}`)}
+              flex={1}
+            >
+              Details
+            </Button>
+            <Button
+              size="sm"
               colorPalette="blue"
+              variant="outline"
               onClick={() => onEdit(deck)}
               flex={1}
             >
-              Edit Deck
+              Edit
             </Button>
             <Button
               size="sm"

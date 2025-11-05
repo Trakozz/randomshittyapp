@@ -148,7 +148,7 @@ export const useDeckManagement = () => {
   const getTotalCards = async (deckId) => {
     try {
       const response = await axios.get(`${getApiUrl('decks')}/${deckId}/total`)
-      return response.data.total
+      return response.data.total_cards
     } catch (err) {
       console.error('Error getting total cards:', err)
       return 0

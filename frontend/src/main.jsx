@@ -14,6 +14,7 @@ const PresetsPage = lazy(() => import('@features/presets').then(m => ({ default:
 const CardsPage = lazy(() => import('@features/cards').then(m => ({ default: m.CardsPage })))
 const CardCreatePage = lazy(() => import('@features/cards').then(m => ({ default: m.CardCreatePage })))
 const DecksPage = lazy(() => import('@features/decks').then(m => ({ default: m.DecksPage })))
+const DeckDetailsPage = lazy(() => import('@features/decks').then(m => ({ default: m.DeckDetailsPage })))
 
 // Loading fallback component
 const PageLoader = () => (
@@ -57,10 +58,26 @@ const router = createBrowserRouter([
         )
       },
       {
+        path: 'cards/edit/:cardId',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <CardCreatePage />
+          </Suspense>
+        )
+      },
+      {
         path: 'decks',
         element: (
           <Suspense fallback={<PageLoader />}>
             <DecksPage />
+          </Suspense>
+        )
+      },
+      {
+        path: 'decks/:deckId',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <DeckDetailsPage />
           </Suspense>
         )
       }

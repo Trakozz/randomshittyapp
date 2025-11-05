@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from server.db.db_config import init_db
 
 app = FastAPI()
@@ -41,6 +42,9 @@ app.include_router(effect_router)
 app.include_router(effect_type_router)
 app.include_router(bonus_router)
 app.include_router(illustration_router)
+
+# Mount static files for uploads (illustrations and icons)
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 @app.get("/api/health")
 async def health_check():

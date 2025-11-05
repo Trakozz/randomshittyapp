@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import {
   Box,
   Button,
@@ -23,16 +23,20 @@ import { CardBonusesFields } from '../components/form/CardBonusesFields'
 /**
  * CardCreatePage Component
  * 
- * Full-featured card creation form with:
+ * Full-featured card creation/edit form with:
  * - React Hook Form for form state management and validation
  * - Real-time preview that updates as user types (using watch())
  * - All preset data loaded from API
  * - Multi-select for effects and bonuses
  * - Comprehensive validation
  * - Success/error notifications
+ * - Support for both create and edit modes
  */
 const CardCreatePage = () => {
   const navigate = useNavigate()
+  const { cardId } = useParams()
+  const isEditMode = Boolean(cardId)
+  
   const {
     archetypes,
     types,
@@ -43,9 +47,12 @@ const CardCreatePage = () => {
     loading: presetsLoading,
     error: presetsError,
     createCard,
+    updateCard,
+    fetchCard,
   } = useCardForm()
 
   const [submitting, setSubmitting] = useState(false)
+  const [loadingCard, setLoadingCard] = useState(isEditMode)
 
   // React Hook Form setup with default values and validation rules
   const {
@@ -72,6 +79,47 @@ const CardCreatePage = () => {
       max_occurrence: 1,
     },
   })
+
+  // Load card data when in edit mode
+  useEffect(() => {
+    if (isEditMode && cardId) {
+      loadCardData(cardId)
+    }
+  }, [cardId, isEditMode])
+
+  const loadCardData = async (id) => {
+    try {
+      setLoadingCard(true)
+      const card = await fetchCard(id)
+      
+      // Populate form with card data
+      reset({
+        name: card.name,
+        archetype_id: card.archetype_id.toString(),
+        type_id: card.type_id.toString(),
+        faction_id: card.faction_id.toString(),
+        cost: card.cost,
+        combat_power: card.combat_power,
+        resilience: card.resilience,
+        description: card.description || '',
+        effect_ids: card.effects?.map(e => e.id) || [],
+        bonus_ids: card.bonuses?.map(b => b.id) || [],
+        illustration_id: card.illustration_id ? card.illustration_id.toString() : '',
+        max_occurrence: card.max_occurrence,
+      })
+    } catch (error) {
+      console.error('Error loading card:', error)
+      toaster.create({
+        title: 'Failed to load card',
+        description: 'Could not load card data for editing.',
+        type: 'error',
+        duration: 5000,
+      })
+      navigate('/cards')
+    } finally {
+      setLoadingCard(false)
+    }
+  }
 
   /**
    * Watch all form values for real-time preview updates
@@ -145,31 +193,61 @@ const CardCreatePage = () => {
         cost: Number(data.cost),
         combat_power: Number(data.combat_power),
         resilience: Number(data.resilience),
-        illustration_id: data.illustration_id ? Number(data.illustration_id) : undefined,
-        description: data.description || undefined,
+        illustration_id: data.illustration_id && data.illustration_id !== '' ? Number(data.illustration_id) : null,
+        description: data.description && data.description.trim() !== '' ? data.description : null,
         max_occurrence: Number(data.max_occurrence),
+        effect_ids: data.effect_ids || [],
+        bonus_ids: data.bonus_ids || [],
       }
-      
-      // Note: effect_ids and bonus_ids are not yet supported in the backend
-      // TODO: Add separate API calls to link effects and bonuses after card creation
 
-      const createdCard = await createCard(cardData)
+      if (isEditMode) {
+        // Update existing card
+        const updatedCard = await updateCard(cardId, cardData)
+        
+        toaster.create({
+          title: 'Card updated successfully',
+          description: `"${updatedCard.name}" has been updated.`,
+          type: 'success',
+          duration: 5000,
+        })
+      } else {
+        // Create new card
+        const createdCard = await createCard(cardData)
+        
+        toaster.create({
+          title: 'Card created successfully',
+          description: `"${createdCard.name}" has been added to your collection.`,
+          type: 'success',
+          duration: 5000,
+        })
+        
+        reset()
+      }
 
-      toaster.create({
-        title: 'Card created successfully',
-        description: `"${createdCard.name}" has been added to your collection.`,
-        type: 'success',
-        duration: 5000,
-      })
-
-      // Reset form and navigate back to cards list
-      reset()
+      // Navigate back to cards list
       setTimeout(() => navigate('/cards'), 1500)
     } catch (error) {
-      console.error('Error creating card:', error)
+      console.error(`Error ${isEditMode ? 'updating' : 'creating'} card:`, error)
+      
+      // Extract error message from validation errors or general error
+      let errorMessage = `An error occurred while ${isEditMode ? 'updating' : 'creating'} the card.`
+      
+      if (error.response?.data?.detail) {
+        // Handle array of validation errors
+        if (Array.isArray(error.response.data.detail)) {
+          errorMessage = error.response.data.detail
+            .map(err => `${err.loc?.join(' > ') || 'Field'}: ${err.msg}`)
+            .join(', ')
+        } else if (typeof error.response.data.detail === 'string') {
+          errorMessage = error.response.data.detail
+        } else {
+          errorMessage = JSON.stringify(error.response.data.detail)
+        }
+      }
+      
       toaster.create({
-        title: 'Failed to create card',
-        description: error.response?.data?.detail || 'An error occurred while creating the card.',
+        title: `Failed to ${isEditMode ? 'update' : 'create'} card`,
+        description: errorMessage,
         type: 'error',
         duration: 7000,
       })
@@ -198,13 +276,13 @@ const CardCreatePage = () => {
     navigate('/cards')
   }
 
-  // Loading state while fetching presets
-  if (presetsLoading) {
+  // Loading state while fetching presets or card data
+  if (presetsLoading || loadingCard) {
     return (
       <Box p={8}>
         <VStack gap={4}>
           <Spinner size="xl" />
-          <Text>Loading form data...</Text>
+          <Text>{loadingCard ? 'Loading card data...' : 'Loading form data...'}</Text>
         </VStack>
       </Box>
     )
@@ -230,15 +308,17 @@ const CardCreatePage = () => {
         {/* Page Header */}
         <HStack justify="space-between">
           <Heading as="h1" size="xl">
-            Create New Card
+            {isEditMode ? 'Edit Card' : 'Create New Card'}
           </Heading>
           <HStack gap={2}>
             <Button variant="outline" onClick={handleCancel}>
               Cancel
             </Button>
-            <Button variant="outline" onClick={handleReset}>
-              Reset Form
-            </Button>
+            {!isEditMode && (
+              <Button variant="outline" onClick={handleReset}>
+                Reset Form
+              </Button>
+            )}
           </HStack>
         </HStack>
 
@@ -298,7 +378,7 @@ const CardCreatePage = () => {
                   loading={submitting}
                   disabled={submitting}
                 >
-                  Create Card
+                  {isEditMode ? 'Update Card' : 'Create Card'}
                 </Button>
               </HStack>
             </VStack>
