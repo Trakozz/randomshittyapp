@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import Text, Integer, ForeignKey
+from sqlalchemy import Text, Integer, ForeignKey, DateTime
 from server.db.base import Base
+from datetime import datetime
 from typing import List, TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -12,7 +13,9 @@ class Bonus(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     description: Mapped[str] = mapped_column(Text, nullable=False)
-    archetype_id: Mapped[int] = mapped_column(Integer, ForeignKey("archetypes.id"), nullable=False)
+    archetype_id: Mapped[int] = mapped_column(Integer, ForeignKey("archetypes.id", ondelete="RESTRICT"), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     cards: Mapped[List["Card"]] = relationship(secondary="card_bonuses", back_populates="bonuses")
 

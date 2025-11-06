@@ -184,6 +184,7 @@ const PresetTable = ({
             <Table.ColumnHeader>ID</Table.ColumnHeader>
             {isType && <Table.ColumnHeader>Icon</Table.ColumnHeader>}
             <Table.ColumnHeader>{getFieldLabel()}</Table.ColumnHeader>
+            {isType && <Table.ColumnHeader>Color</Table.ColumnHeader>}
             {showArchetypeColumn && (
               <Table.ColumnHeader>Archetype</Table.ColumnHeader>
             )}
@@ -199,7 +200,7 @@ const PresetTable = ({
         <Table.Body>
           {filteredData.length === 0 ? (
             <Table.Row>
-              <Table.Cell colSpan={showArchetypeColumn ? (isEffect ? 6 : 4) : (isEffect ? 5 : 3)}>
+              <Table.Cell colSpan={showArchetypeColumn ? (isEffect ? 6 : 4) : (isEffect ? 5 : (isType ? 5 : 3))}>
                 <Text textAlign="center" color="gray.500" py={4}>
                   No {entityType.toLowerCase()}s found
                 </Text>
@@ -224,6 +225,25 @@ const PresetTable = ({
                   </Table.Cell>
                 )}
                 <Table.Cell>{getFieldValue(item)}</Table.Cell>
+                {isType && (
+                  <Table.Cell>
+                    {item.color ? (
+                      <HStack gap={2}>
+                        <Box
+                          w="40px"
+                          h="24px"
+                          bg={item.color}
+                          borderRadius="md"
+                          border="1px solid"
+                          borderColor="gray.300"
+                        />
+                        <Text fontSize="sm" fontFamily="mono">{item.color}</Text>
+                      </HStack>
+                    ) : (
+                      <Text fontSize="xs" color="gray.500">No color</Text>
+                    )}
+                  </Table.Cell>
+                )}
                 {showArchetypeColumn && (
                   <Table.Cell>{getArchetypeName(item.archetype_id)}</Table.Cell>
                 )}

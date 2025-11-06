@@ -5,10 +5,10 @@ from sqlalchemy import select
 
 class TypeRepository:
     
-    def create(self, name: str, icon_path: Optional[str] = None) -> Type:
-        """Create a new type with a given name and optional icon."""
+    def create(self, name: str, icon_path: Optional[str] = None, color: Optional[str] = None) -> Type:
+        """Create a new type with a given name, optional icon, and optional color."""
         with SessionLocal() as session:
-            type_obj = Type(name=name, icon_path=icon_path)
+            type_obj = Type(name=name, icon_path=icon_path, color=color)
             session.add(type_obj)
             session.commit()
             session.refresh(type_obj)
@@ -25,8 +25,8 @@ class TypeRepository:
             result = session.scalars(select(Type)).all()
             return result
     
-    def update(self, type_id: int, name: Optional[str] = None, icon_path: Optional[str] = None) -> Optional[Type]:
-        """Update a type's name and/or icon path."""
+    def update(self, type_id: int, name: Optional[str] = None, icon_path: Optional[str] = None, color: Optional[str] = None) -> Optional[Type]:
+        """Update a type's name, icon path, and/or color."""
         with SessionLocal() as session:
             type_obj = session.get(Type, type_id)
             if not type_obj:
@@ -35,6 +35,8 @@ class TypeRepository:
                 type_obj.name = name
             if icon_path is not None:
                 type_obj.icon_path = icon_path
+            if color is not None:
+                type_obj.color = color
             session.commit()
             session.refresh(type_obj)
             return type_obj

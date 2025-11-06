@@ -22,17 +22,20 @@ ICONS_DIR.mkdir(parents=True, exist_ok=True)
 class TypeCreate(BaseModel):
     name: str
     icon_path: Optional[str] = None
+    color: Optional[str] = None
 
 
 class TypeUpdate(BaseModel):
     name: str | None = None
     icon_path: str | None = None
+    color: str | None = None
 
 
 class TypeResponse(BaseModel):
     id: int
     name: str
     icon_path: Optional[str] = None
+    color: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -41,7 +44,7 @@ class TypeResponse(BaseModel):
 @router.post("/types", response_model=TypeResponse)
 def create_type(type_data: TypeCreate):
     """Create a new type."""
-    return service.create_type(type_data.name, type_data.icon_path)
+    return service.create_type(type_data.name, type_data.icon_path, type_data.color)
 
 
 @router.get("/types/{type_id}", response_model=TypeResponse)
@@ -81,7 +84,7 @@ def update_type(type_id: int, type_data: TypeUpdate):
                 # Don't fail the request if old file deletion fails
     
     # Update the type
-    result = service.update_type(type_id, type_data.name, type_data.icon_path)
+    result = service.update_type(type_id, type_data.name, type_data.icon_path, type_data.color)
     if not result:
         raise HTTPException(status_code=404, detail="Type not found")
     return result

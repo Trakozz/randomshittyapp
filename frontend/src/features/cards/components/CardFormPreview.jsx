@@ -38,24 +38,9 @@ export const CardFormPreview = ({ formData, showWrapper = true }) => {
     const textColor = useColorModeValue("gray.800", "whiteAlpha.900")
     const backgroundColor = useColorModeValue("white", "gray.900")
 
-    // Determine theme color based on type or faction
-    const getThemeColor = () => {
-        if (type?.name) {
-            const typeColors = {
-                'Warrior': '#E53E3E',
-                'Mage': '#9F7AEA',
-                'Rogue': '#38B2AC',
-                'Priest': '#ECC94B',
-                'Ranger': '#48BB78',
-                'Paladin': '#F6AD55',
-            }
-            return typeColors[type.name] || '#4299E1'
-        }
-        return '#4299E1'
-    }
-
-    const borderColor = getThemeColor()
-    const defaultBorder = borderColor
+    // Get theme color from type's color field, fallback to default blue
+    const themeColor = type?.color || '#4299E1'
+    const defaultBorder = themeColor
 
     // Get type icon URL from the type's icon_path
     const getTypeIconUrl = () => {

@@ -151,6 +151,20 @@ const PresetModal = ({
             required
           />
         </Box>
+        <Box>
+          <Text fontWeight="medium" mb={2}>Color (Optional)</Text>
+          <Input
+            type="color"
+            value={formData.color || '#000000'}
+            onChange={(e) => handleChange('color', e.target.value)}
+            w="100px"
+            h="40px"
+            cursor="pointer"
+          />
+          <Text fontSize="sm" color="gray.500" mt={1}>
+            Choose a color for card backgrounds
+          </Text>
+        </Box>
         <TypeIconUpload
           currentIconPath={formData.icon_path}
           onFileSelect={handleIconFileSelect}

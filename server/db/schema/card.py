@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, Integer, ForeignKey, Text
+from sqlalchemy import String, Integer, ForeignKey, Text, DateTime
 from server.db.base import Base
+from datetime import datetime
 from typing import List, TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -18,15 +19,17 @@ class Card(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
-    archetype_id: Mapped[int] = mapped_column(Integer, ForeignKey("archetypes.id"), nullable=False)
-    type_id: Mapped[int] = mapped_column(Integer, ForeignKey("types.id"), nullable=False)
-    faction_id: Mapped[int] = mapped_column(Integer, ForeignKey("factions.id"), nullable=False)
+    archetype_id: Mapped[int] = mapped_column(Integer, ForeignKey("archetypes.id", ondelete="RESTRICT"), nullable=False)
+    type_id: Mapped[int] = mapped_column(Integer, ForeignKey("types.id", ondelete="RESTRICT"), nullable=False)
+    faction_id: Mapped[int] = mapped_column(Integer, ForeignKey("factions.id", ondelete="RESTRICT"), nullable=False)
     cost: Mapped[int] = mapped_column(Integer, nullable=False)
     combat_power: Mapped[int] = mapped_column(Integer, nullable=False)
     resilience: Mapped[int] = mapped_column(Integer, nullable=False)
-    illustration_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("illustrations.id"), nullable=True)
+    illustration_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("illustrations.id", ondelete="SET NULL"), nullable=True)
     max_occurrence: Mapped[int] = mapped_column(Integer, nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     # Many-to-many relationships
     effects: Mapped[List["Effect"]] = relationship(secondary="card_effects", back_populates="cards")
@@ -37,7 +40,7 @@ class Card(Base):
     archetype: Mapped["Archetype"] = relationship(foreign_keys=[archetype_id])
     type: Mapped["Type"] = relationship(foreign_keys=[type_id])
     faction: Mapped["Faction"] = relationship(foreign_keys=[faction_id])
-    illustration: Mapped["Illustration | None"] = relationship(foreign_keys=[illustration_id])
+    illustration: Mapped["Illustration | None"] = relationship(back_populates="cards", foreign_keys=[illustration_id])
 
     def __repr__(self) -> str:
-        return f"Card(id={self.id!r}, name={self.name!r}, archetype_id={self.archetype_id!r}, type_id={self.type_id!r}, faction_id={self.faction_id!r})"
+        return f"<Card(id={self.id}, name={self.name}, archetype_id={self.archetype_id}, type_id={self.type_id}, faction_id={self.faction_id})>"
