@@ -1,351 +1,335 @@
-import {
-    Box,
-    Flex,
-    Text,
-    Image,
-    Stack,
-} from '@chakra-ui/react'
-import { useColorModeValue } from '@/components/ui/color-mode'
-import { API_BASE_URL } from '@constants/api'
+import { Box, Flex, Text, Image, Stack, VStack } from "@chakra-ui/react";
+import { useColorModeValue } from "@/components/ui/color-mode";
+import { API_BASE_URL } from "@constants/api";
 
 /**
  * CardFormPreview Component
- * 
+ *
  * Real-time card preview for the card creation/edit form.
  * Displays game-specific stats like combat_power, resilience, max_occurrence.
  * Updates live as the user fills out the form.
- * 
+ *
  * @param {Object} formData - The form data from React Hook Form watch()
  * @param {boolean} showWrapper - Whether to show the sticky wrapper and "Live Preview" heading (default: true)
  */
 export const CardFormPreview = ({ formData, showWrapper = true }) => {
-    const {
-        name = 'Card Name',
-        archetype,
-        type,
-        faction,
-        cost = 0,
-        combat_power = 0,
-        resilience = 0,
-        description = '',
-        effects = [],
-        bonuses = [],
-        illustration,
-        max_occurrence = 1,
-    } = formData
+  const {
+    name = "Card Name",
+    archetype,
+    type,
+    faction,
+    cost = 0,
+    combat_power = 0,
+    resilience = 0,
+    description = "",
+    effects = [],
+    bonuses = [],
+    illustration,
+    max_occurrence = 1,
+  } = formData;
 
-    // Color mode values
-    const textColor = useColorModeValue("gray.800", "whiteAlpha.900")
-    const backgroundColor = useColorModeValue("white", "gray.900")
+  // Color mode values
+  const textColor = useColorModeValue("gray.800", "whiteAlpha.900");
+  const backgroundColor = useColorModeValue("white", "gray.900");
 
-    // Get theme color from type's color field, fallback to default blue
-    const themeColor = type?.color || '#4299E1'
-    const defaultBorder = themeColor
+  // Get theme color from type's color field, fallback to default blue
+  const themeColor = type?.color || "#4299E1";
+  const defaultBorder = themeColor;
 
-    // Get type icon URL from the type's icon_path
-    const getTypeIconUrl = () => {
-        if (type?.icon_path) {
-            const filename = type.icon_path.split('/').pop()
-            return `${API_BASE_URL}/types/icon/${filename}`
-        }
-        return null
+  // Get type icon URL from the type's icon_path
+  const getTypeIconUrl = () => {
+    if (type?.icon_path) {
+      const filename = type.icon_path.split("/").pop();
+      return `${API_BASE_URL}/types/icon/${filename}`;
     }
+    return null;
+  };
 
-    const typeIconUrl = getTypeIconUrl()
+  const typeIconUrl = getTypeIconUrl();
 
-    // Inner card component
-    const cardElement = (
-        <Box
-            w="360px"
-            color={textColor}
-            borderRadius="lg"
-            borderWidth="4px"
+  // Inner card component
+  // Standard card size: 63.5mm x 88.9mm (2.5" x 3.5")
+  // Aspect ratio: 1:1.4
+  // Using 300px width for good screen display
+  const cardElement = (
+    <Box
+      w="300px"
+      h="420px"
+      color={textColor}
+      borderRadius="lg"
+      borderWidth="4px"
+      borderColor={defaultBorder}
+      overflow="hidden"
+      boxShadow="2xl"
+      bg={backgroundColor}
+      transition="transform 0.2s ease"
+      _hover={{ transform: "scale(1.8)" }}
+      position="relative"
+    >
+      {/* ===== Illustration + All Overlays ===== */}
+      <Box position="absolute" inset="0" overflow="hidden">
+        {/* --- Background image --- */}
+        {illustration?.url ? (
+          <>
+            <Image
+              src={`http://localhost:8000${illustration.url}`}
+              alt={name || "Card"}
+              objectFit="cover"
+              w="100%"
+              h="100%"
+            />
+          </>
+        ) : (
+          <Flex
+            align="center"
+            justify="center"
+            h="100%"
+            direction="column"
+            gap={2}
+            color="gray.500"
+          >
+            <Text fontSize="5xl">🖼️</Text>
+            <Text fontSize="sm">No Illustration</Text>
+          </Flex>
+        )}
+
+        {/* --- Top bar overlay --- */}
+        <Box position="absolute" top="8px" left="8px" right="8px" zIndex={3}>
+          <Flex
+            bgColor="blackAlpha.700"
+            align="center"
+            justify="space-between"
+            px={1.5}
+            py={0.5}
+            borderRadius="full"
+            border="1px solid"
             borderColor={defaultBorder}
-            overflow="hidden"
-            boxShadow="2xl"
-            bg={backgroundColor}
-            transition="transform 0.2s ease"
-            _hover={{ transform: "scale(1.02)" }}
-            position="relative"
-        >
-                {/* ===== Top Bar ===== */}
-                <Box
-                    position="absolute"
-                    top="12px"
-                    left="12px"
-                    right="12px"
-                    zIndex="2"
-                >
-                    <Flex
-                        align="center"
-                        justify="space-between"
-                        px={4}
-                        py={2}
-                        borderRadius="full"
-                        bgGradient="linear(to-r, blackAlpha.700, blackAlpha.800)"
-                        backdropFilter="blur(6px)"
-                        boxShadow="inset 0 0 6px rgba(255,255,255,0.15)"
-                    >
-                        {/* === Left side: Type icons === */}
-                        <Flex align="center" gap={2}>
-                            <Flex
-                                align="center"
-                                justify="center"
-                                bg="whiteAlpha.200"
-                                borderRadius="full"
-                                boxSize="32px"
-                                shadow="0 0 8px rgba(0,0,0,0.4)"
-                                overflow="hidden"
-                                padding="4px"
-                            >
-                                {typeIconUrl ? (
-                                    <Image
-                                        src={typeIconUrl}
-                                        alt={type?.name || 'Type icon'}
-                                        boxSize="full"
-                                        objectFit="contain"
-                                    />
-                                ) : (
-                                    <Text fontSize="xl">⚔️</Text>
-                                )}
-                            </Flex>
-
-                            {/* Optional secondary icon (e.g. time/day icon) */}
-                            <Flex
-                                align="center"
-                                justify="center"
-                                bg="whiteAlpha.200"
-                                borderRadius="full"
-                                boxSize="28px"
-                                fontSize="md"
-                            >
-                                ⏱️
-                            </Flex>
-                        </Flex>
-
-                        {/* === Center: Card name === */}
-                        <Text
-                            flex="1"
-                            textAlign="center"
-                            fontSize="lg"
-                            fontWeight="bold"
-                            color="white"
-                            textShadow="0 0 4px rgba(0,0,0,0.8)"
-                            mx={4}
-                            noOfLines={1}
-                        >
-                            {name || "Unnamed Card"}
-                        </Text>
-
-                        {/* === Right: Cost badge === */}
-                        <Flex
-                            align="center"
-                            justify="center"
-                            bg="whiteAlpha.300"
-                            borderRadius="full"
-                            boxSize="38px"
-                            fontWeight="extrabold"
-                            fontSize="xl"
-                            color="white"
-                            shadow="0 0 8px rgba(0,0,0,0.6)"
-                            border="2px solid"
-                            borderColor="whiteAlpha.400"
-                        >
-                            {cost ?? "—"}
-                        </Flex>
-                    </Flex>
-                </Box>
-
-                {/* ===== Illustration ===== */}
-                <Box position="relative" h="240px" bg="gray.700">
-                    {illustration?.url ? (
-                        <>
-                            <Image
-                                src={`http://localhost:8000${illustration.url}`}
-                                alt={name || "Card"}
-                                objectFit="cover"
-                                w="100%"
-                                h="100%"
-                            />
-                            <Box
-                                position="absolute"
-                                inset="0"
-                                bgGradient="linear(to-t, blackAlpha.700 10%, transparent 50%)"
-                            />
-                        </>
-                    ) : (
-                        <Flex
-                            align="center"
-                            justify="center"
-                            h="100%"
-                            direction="column"
-                            gap={2}
-                            color="gray.500"
-                        >
-                            <Text fontSize="5xl">🖼️</Text>
-                            <Text fontSize="sm">No Illustration</Text>
-                        </Flex>
-                    )}
-                </Box>
-
-                {/* ===== Stats Bar ===== */}
-                <Flex
-                    bg="blackAlpha.800"
-                    px={4}
-                    py={3}
-                    justify="space-around"
-                    align="center"
-                    borderTop="1px solid"
-                    borderColor="whiteAlpha.200"
-                >
-                    {[
-                        { label: "⚔️ Puissance", value: combat_power },
-                        { label: "🛡️ Défense", value: resilience },
-                        { label: "📊 Max", value: max_occurrence },
-                    ].map(({ label, value }) => (
-                        <Flex key={label} direction="column" align="center" gap={1}>
-                            <Text fontSize="xs" color="gray.300" textTransform="uppercase">
-                                {label}
-                            </Text>
-                            <Text fontSize="2xl" fontWeight="bold" color={defaultBorder}>
-                                {value ?? "-"}
-                            </Text>
-                        </Flex>
-                    ))}
-                </Flex>
-
-                {/* ===== Effect Section ===== */}
-                {effects.length > 0 && (
-                    <Box
-                        bg="blackAlpha.800"
-                        px={4}
-                        py={3}
-                        borderTop="1px solid"
-                        borderColor="whiteAlpha.200"
-                        borderBottomRadius={effects.length && !bonuses.length ? "lg" : "none"}
-                    >
-                        <Box
-                            bg="blackAlpha.600"
-                            borderRadius="md"
-                            px={3}
-                            py={2}
-                            border="1px solid"
-                            borderColor="whiteAlpha.300"
-                        >
-                            <Text
-                                fontWeight="bold"
-                                color={defaultBorder}
-                                mb={1}
-                                fontSize="sm"
-                            >
-                                [Effets]
-                            </Text>
-                            <Stack spacing={1}>
-                                {effects.map((effect) => (
-                                    <Text key={effect.id} fontSize="sm" color="whiteAlpha.900">
-                                        • {effect.description}
-                                    </Text>
-                                ))}
-                            </Stack>
-                        </Box>
-                    </Box>
+            backdropFilter="blur(6px)"
+          >
+            {/* Left side: type icon */}
+            <Flex align="center" gap={1}>
+              <Flex
+                align="center"
+                justify="center"
+                boxSize="24px"
+                overflow="hidden"
+              >
+                {typeIconUrl ? (
+                  <Image
+                    src={typeIconUrl}
+                    alt={type?.name || "Type icon"}
+                    boxSize="full"
+                    objectFit="contain"
+                  />
+                ) : (
+                  <Text fontSize="md">?</Text>
                 )}
+              </Flex>
+            </Flex>
 
-                {/* ===== Bonuses Section ===== */}
-                {bonuses.length > 0 && (
-                    <Box
-                        bg="gray.900"
-                        px={4}
-                        py={3}
-                        borderTop="1px solid"
-                        borderColor="whiteAlpha.200"
-                    >
-                        <Box
-                            bg="gray.800"
-                            borderRadius="md"
-                            px={3}
-                            py={2}
-                            border="1px solid"
-                            borderColor="whiteAlpha.300"
-                        >
-                            <Text
-                                fontWeight="bold"
-                                color={defaultBorder}
-                                mb={2}
-                                fontSize="sm"
-                            >
-                                [Bonus]
-                            </Text>
-                            <Flex wrap="wrap" gap={2}>
-                                {bonuses.map((bonus) => (
-                                    <Box
-                                        key={bonus.id}
-                                        bg="whiteAlpha.200"
-                                        color="whiteAlpha.900"
-                                        borderRadius="full"
-                                        px={3}
-                                        py={1}
-                                        fontSize="xs"
-                                        fontWeight="medium"
-                                    >
-                                        {bonus.description}
-                                    </Box>
-                                ))}
-                            </Flex>
-                        </Box>
-                    </Box>
-                )}
-
-                {/* ===== Description Section ===== */}
-                {description && (
-                    <Box
-                        bg="gray.800"
-                        px={4}
-                        py={3}
-                        borderTop="1px solid"
-                        borderColor="whiteAlpha.200"
-                    >
-                        <Text 
-                            fontSize="xs" 
-                            color="gray.300" 
-                            fontStyle="italic"
-                            lineHeight="1.6"
-                        >
-                            {description}
-                        </Text>
-                    </Box>
-                )}
-
-                {/* ===== Footer ===== */}
-                <Flex
-                    bg="blackAlpha.700"
-                    px={3}
-                    py={2}
-                    align="center"
-                    justify="space-between"
-                    fontSize="xs"
-                    color="gray.400"
-                    textTransform="uppercase"
-                >
-                    <Text>{type?.name || "—"}</Text>
-                    <Text>{archetype?.name || "Aucun archétype"}</Text>
-                    <Text>{faction?.name || "—"}</Text>
-                </Flex>
-            </Box>
-        
-    )
-
-    // Return with or without wrapper based on showWrapper prop
-    if (!showWrapper) {
-        return cardElement
-    }
-
-    return (
-        <Box position="sticky" top={4}>
-            <Text fontSize="lg" fontWeight="semibold" mb={4}>
-                Live Preview
+            {/* Center: card name */}
+            <Text
+              flex="1"
+              textAlign="center"
+              fontSize="md"
+              fontWeight="bold"
+              color="white"
+              textShadow="0 0 4px rgba(0,0,0,0.8)"
+              mx={2}
+              noOfLines={1}
+            >
+              {name}
             </Text>
-            {cardElement}
+
+            {/* Right: cost */}
+            <Flex
+              align="center"
+              justify="center"
+              boxSize="28px"
+              fontWeight="extrabold"
+              fontSize="md"
+              color="black"
+              position="relative"
+            >
+              <Image
+                src="/src/resources/connaissance.svg"
+                alt="Cost background"
+                position="absolute"
+                boxSize="full"
+                objectFit="contain"
+              />
+              <Text
+                position="relative"
+                zIndex={1}
+                fontWeight="extrabold"
+                WebkitTextStroke="1px white"
+              >
+                {cost ?? "—"}
+              </Text>
+            </Flex>
+          </Flex>
         </Box>
-    )
-}
+
+        {/* --- Bottom stacked overlays (Faction, Effects, Description, Footer) --- */}
+        <VStack position="absolute" bottom={0} zIndex={2}>
+          {/* Faction / Bonuses */}
+          <Flex w="100%" align={"left"} gap={1} px={2}>
+            {/* Faction bubble - only show if defined */}
+            {faction && (
+              <Box
+                border="1px solid"
+                borderColor={defaultBorder}
+                bg="blackAlpha.700"
+                backdropFilter="blur(8px)"
+                borderRadius="full"
+                px={2}
+                py={0.5}
+              >
+                <Text
+                  fontSize="2xs"
+                  fontWeight="bold"
+                  color="white"
+                  textTransform="uppercase"
+                >
+                  {faction.name}
+                </Text>
+              </Box>
+            )}
+
+            {/* Power - only show if defined */}
+            {combat_power && (
+              <Flex
+                align="center"
+                justify="center"
+                gap={1}
+                border="1px solid"
+                borderColor={defaultBorder}
+                bg="blackAlpha.700"
+                backdropFilter="blur(8px)"
+                borderRadius="full"
+                px={2}
+                height={6}
+              >
+                <Image
+                  src="/src/resources/puissance.svg"
+                  alt="combat power icon"
+                  height="100%"
+                  width="auto"
+                  objectFit="contain"
+                />
+                <Text
+                  fontSize="2xs"
+                  fontWeight="bold"
+                  color="white"
+                  textTransform="uppercase"
+                >
+                  {combat_power}
+                </Text>
+              </Flex>
+            )}
+
+            {/* Bonuses bubbles - only show if defined */}
+            {bonuses.length > 0 &&
+              bonuses.map((bonus) => (
+                <Box
+                  key={bonus.id}
+                  border="1px solid"
+                  borderColor={defaultBorder}
+                  bg="blackAlpha.700"
+                  backdropFilter="blur(8px)"
+                  borderRadius="full"
+                  px={2}
+                  py={0.5}
+                >
+                  <Text fontSize="2xs" fontWeight="medium" color="white">
+                    {bonus.description}
+                  </Text>
+                </Box>
+              ))}
+          </Flex>
+          <Box
+            border="1px solid"
+            borderRadius="20px"
+            borderColor={defaultBorder}
+            bg="blackAlpha.800"
+            opacity={0.9}
+          >
+            {/* Effects */}
+            {effects.length > 0 && (
+              <Box px={4} py={1.5}>
+                <Stack gap={1.5}>
+                  {effects.map((effect) => (
+                    <Box key={effect.id}>
+                      <Text fontSize="2xs" fontWeight="bold" color="white">
+                        [Effect] {effect.name}
+                      </Text>
+                      <Text fontSize="2xs" color="whiteAlpha.900">
+                        {effect.description}
+                      </Text>
+                    </Box>
+                  ))}
+                </Stack>
+              </Box>
+            )}
+
+            {/* ===== Description ===== */}
+            {description && (
+              <Box w="100%" position="relative" overflow="hidden">
+                {/* Inner transparent content area */}
+                <Box
+                  position="relative"
+                  opacity={0.9}
+                  borderRadius="lg"
+                  border="1px solid"
+                  borderColor={defaultBorder}
+                  mx={4}
+                  px={4}
+                  py={1.5}
+                  bgGradient="to-br"
+                  gradientFrom={`${defaultBorder}10`}
+                  gradientTo={defaultBorder}
+                >
+                  <Text
+                    fontSize="2xs"
+                    color="whiteAlpha.900"
+                    fontStyle="italic"
+                    lineHeight="1.6"
+                  >
+                    {description}
+                  </Text>
+                </Box>
+              </Box>
+            )}
+
+            {/* Footer */}
+            <Flex
+              px={5}
+              align="center"
+              justify="space-between"
+              fontSize="2xs"
+              color="whiteAlpha.900"
+            >
+              <Text>{type?.name || "—"}</Text>
+              <Text>{archetype?.name || "—"}</Text>
+              <Text fontSize={"4xs"}>Ascendance TCG</Text>
+            </Flex>
+          </Box>
+        </VStack>
+      </Box>
+    </Box>
+  );
+
+  // Return with or without wrapper based on showWrapper prop
+  if (!showWrapper) {
+    return cardElement;
+  }
+
+  return (
+    <Box position="sticky" top={4}>
+      <Text fontSize="lg" fontWeight="semibold" mb={4}>
+        Live Preview
+      </Text>
+      {cardElement}
+    </Box>
+  );
+};
